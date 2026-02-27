@@ -17,9 +17,10 @@ if [ -n "$TMUX" ]; then
   SESS=$(tmux display-message -p '#{session_name}' 2>/dev/null)
   WIN=$(tmux display-message -p '#{window_name}' 2>/dev/null)
   WIN_IDX=$(tmux display-message -p '#{window_index}' 2>/dev/null)
+  PANE_IDX=$(tmux display-message -p '#{pane_index}' 2>/dev/null)
   WIN="${WIN#\[}"; WIN="${WIN%\]}"
   TAG="${SESS}:${WIN}"
-  JUMP_URI="tmux-jump://${SESS}:${WIN_IDX}"
+  JUMP_URI="tmux-jump://${SESS}:${WIN_IDX}.${PANE_IDX}"
 else
   TAG="${CWD##*/}"
   JUMP_URI=""
