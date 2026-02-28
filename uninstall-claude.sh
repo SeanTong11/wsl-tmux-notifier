@@ -1,5 +1,5 @@
 #!/bin/bash
-# uninstall.sh — Remove all wsl-claude-notifier components
+# uninstall-claude.sh — Remove Claude Code notification components
 set -euo pipefail
 
 WIN_USER=$(cmd.exe /C "echo %USERNAME%" 2>/dev/null | tr -d '\r')
@@ -7,7 +7,7 @@ WSL_WIN_DIR="/mnt/c/Users/${WIN_USER}/.wsl-claude-notifier"
 BIN_DIR="$HOME/.local/bin"
 CLAUDE_SETTINGS="$HOME/.claude/settings.json"
 
-echo "=== wsl-claude-notifier uninstaller ==="
+echo "=== wsl-claude-notifier uninstaller (Claude Code) ==="
 echo ""
 
 # Step 1: Remove registry protocol

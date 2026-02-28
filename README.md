@@ -1,6 +1,6 @@
 # wsl-claude-notifier
 
-> Windows toast notifications for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) hooks in WSL2 — with tmux session awareness and one-click window jump.
+> Windows toast notifications for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) and [Codex CLI](https://github.com/openai/codex) in WSL2 — with tmux session awareness and one-click window jump.
 
 [中文说明](README.zh-CN.md)
 
@@ -8,17 +8,18 @@
 
 ## Why?
 
-[Claude Code](https://docs.anthropic.com/en/docs/claude-code) supports [hooks](https://docs.anthropic.com/en/docs/claude-code/hooks) to run shell commands on events like task completion or permission requests. But if you're running Claude Code inside **WSL2**, there's no built-in way to surface these events as **Windows notifications**. You end up alt-tabbing back to check constantly.
+[Claude Code](https://docs.anthropic.com/en/docs/claude-code) and [Codex CLI](https://github.com/openai/codex) are terminal-based AI coding agents. But if you're running them inside **WSL2**, there's no built-in way to surface completion events as **Windows notifications**. You end up alt-tabbing back to check constantly.
 
-It gets worse with **tmux** — multiple Claude sessions across different windows, and no way to know *which one* needs attention, let alone jump to it.
+It gets worse with **tmux** — multiple AI sessions across different windows, and no way to know *which one* needs attention, let alone jump to it.
 
 This tool bridges that gap:
 
-- **Windows native toast** — real Win11 toast notifications via [BurntToast](https://github.com/Windos/BurntToast) when Claude Code stops or needs input
+- **Windows native toast** — real Win11 toast notifications via [BurntToast](https://github.com/Windos/BurntToast) when your AI agent stops or needs input
+- **Multi-tool support** — works with both Claude Code (hooks) and Codex CLI (notify)
 - **Tmux-aware** — notification title shows `[session:window]` so you instantly know which session finished
 - **One-click jump** — click "Jump" on the toast to activate Windows Terminal and switch directly to the right tmux window _(pane-level jump is WIP)_
 - **Claude icon** — notifications display the Claude logo for easy visual identification
-- **Zero config** — one script installs everything: PowerShell module, shell scripts, custom protocol handler, Claude Code hooks
+- **Zero config** — one script installs everything: PowerShell module, shell scripts, custom protocol handler, tool-specific config
 
 ## Tested Environment
 
@@ -28,23 +29,35 @@ This tool bridges that gap:
 
 ## Quick Install
 
+Install for the tools you use — run one or both:
+
 ```bash
 git clone <repo-url>
 cd wsl-claude-notifier
-bash install.sh
+
+# For Claude Code users
+bash install-claude.sh
+
+# For Codex CLI users
+bash install-codex.sh
 ```
 
-The installer handles everything:
-1. Install [BurntToast](https://github.com/Windos/BurntToast) PowerShell module (if missing)
-2. Deploy notification scripts to `~/.local/bin/`
+### What each installer does
+
+**Shared steps** (both installers handle these, skipping if already done):
+1. Install [BurntToast](https://github.com/Windos/BurntToast) PowerShell module
+2. Deploy notification + jump scripts to `~/.local/bin/`
 3. Deploy protocol handler + icon to `C:\Users\<YOU>\.wsl-claude-notifier\`
 4. Register `tmux-jump://` custom protocol
-5. Add hooks to `~/.claude/settings.json`
+
+**Claude Code** (step 5): Add hooks to `~/.claude/settings.json`
+
+**Codex CLI** (step 5): Add `notify` to `~/.codex/config.toml`
 
 ## Prerequisites
 
 - WSL2 with `jq` installed (`sudo apt install jq`)
-- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI
+- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI and/or [Codex CLI](https://github.com/openai/codex)
 - tmux (recommended, works without it but no Jump button)
 - Windows Terminal
 
@@ -60,8 +73,17 @@ powershell.exe -NoProfile -Command "Install-Module -Name BurntToast -Force -Scop
 ### Step 2: Deploy scripts
 
 ```bash
-cp wsl-tmux-notify.sh tmux-jump.sh ~/.local/bin/
-chmod +x ~/.local/bin/wsl-tmux-notify.sh ~/.local/bin/tmux-jump.sh
+# For Claude Code
+cp scripts/wsl-tmux-notify.sh ~/.local/bin/
+chmod +x ~/.local/bin/wsl-tmux-notify.sh
+
+# For Codex CLI
+cp scripts/wsl-codex-notify.sh ~/.local/bin/
+chmod +x ~/.local/bin/wsl-codex-notify.sh
+
+# Jump helper (shared)
+cp scripts/tmux-jump.sh ~/.local/bin/
+chmod +x ~/.local/bin/tmux-jump.sh
 ```
 
 ### Step 3: Deploy Windows-side files
@@ -69,7 +91,7 @@ chmod +x ~/.local/bin/wsl-tmux-notify.sh ~/.local/bin/tmux-jump.sh
 ```bash
 WIN_USER=$(cmd.exe /C "echo %USERNAME%" 2>/dev/null | tr -d '\r')
 mkdir -p "/mnt/c/Users/${WIN_USER}/.wsl-claude-notifier"
-cp tmux-jump.ps1 assets/icon.png "/mnt/c/Users/${WIN_USER}/.wsl-claude-notifier/"
+cp windows/tmux-jump.ps1 assets/icon.png "/mnt/c/Users/${WIN_USER}/.wsl-claude-notifier/"
 ```
 
 ### Step 4: Register protocol handler
@@ -87,7 +109,7 @@ Set-ItemProperty -Path "HKCU:\Software\Classes\$proto\shell\open\command" -Name 
 '@
 ```
 
-### Step 5: Configure Claude Code hooks
+### Step 5a: Configure Claude Code hooks
 
 Add to `~/.claude/settings.json`:
 
@@ -110,6 +132,14 @@ Add to `~/.claude/settings.json`:
 }
 ```
 
+### Step 5b: Configure Codex CLI notify
+
+Add to `~/.codex/config.toml`:
+
+```toml
+notify = ["~/.local/bin/wsl-codex-notify.sh"]
+```
+
 </details>
 
 ## How It Works
@@ -118,36 +148,43 @@ Add to `~/.claude/settings.json`:
 Claude Code hook event (Stop / Notification)
   │  stdin: JSON with event type, message, cwd
   ▼
-wsl-tmux-notify.sh
-  ├─ Parses event, reads tmux session:window.pane
-  ├─ Builds BurntToast command with Jump button + icon
-  └─ PowerShell -EncodedCommand (UTF-16LE) ──► Windows toast notification
-                                                        │
-                                              Click "Jump" button
-                                                        │
-                                                        ▼
-                                              tmux-jump:// protocol
-                                                        │
-                                                        ▼
-                                              tmux-jump.ps1
-                                                ├─ SetForegroundWindow() → activate Windows Terminal
-                                                └─ wsl.exe tmux-jump.sh → switch tmux window
+wsl-tmux-notify.sh ──────────────────────────────┐
+                                                  │
+Codex CLI notify (agent-turn-complete)            ├──► BurntToast toast notification
+  │  argv: JSON with type, last-assistant-message │        │
+  ▼                                               │   Click "Jump"
+wsl-codex-notify.sh ─────────────────────────────-┘        │
+  ├─ Reads tmux session:window.pane                        ▼
+  ├─ Builds BurntToast command + Jump button        tmux-jump:// protocol
+  └─ PowerShell -EncodedCommand (UTF-16LE)                 │
+                                                           ▼
+                                                    tmux-jump.ps1
+                                                     ├─ SetForegroundWindow() → activate Windows Terminal
+                                                     └─ wsl.exe tmux-jump.sh → switch tmux window
 ```
 
 ## Uninstall
 
 ```bash
-bash uninstall.sh
+# Remove Claude Code components
+bash uninstall-claude.sh
+
+# Remove Codex CLI components
+bash uninstall-codex.sh
 ```
 
-Removes all deployed files, registry entries, and Claude Code hooks.
+Removes deployed files, registry entries, and tool-specific config.
 
 ## Troubleshooting
 
 **No toast appears?**
-- Test notification directly:
+- Test Claude Code notification:
   ```bash
   echo '{"hook_event_name":"Stop","cwd":"/tmp","last_assistant_message":"Test message"}' | ~/.local/bin/wsl-tmux-notify.sh
+  ```
+- Test Codex CLI notification:
+  ```bash
+  ~/.local/bin/wsl-codex-notify.sh '{"type":"agent-turn-complete","cwd":"/tmp","last-assistant-message":"Test message"}'
   ```
 - Verify BurntToast: `powershell.exe -NoProfile -Command "Import-Module BurntToast; New-BurntToastNotification -Text 'Test'"`
 - Check Windows notification settings (Settings > System > Notifications)
@@ -161,7 +198,7 @@ Removes all deployed files, registry entries, and Claude Code hooks.
 - Check protocol log: `cat /mnt/c/Users/*/.wsl-claude-notifier/tmux-jump.log`
 
 **No Jump button on toast?**
-- Jump button only appears when Claude Code runs inside tmux (`echo $TMUX` should have output)
+- Jump button only appears when running inside tmux (`echo $TMUX` should have output)
 
 ## License
 

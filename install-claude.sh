@@ -1,5 +1,5 @@
 #!/bin/bash
-# install.sh — One-click installer for wsl-claude-notifier
+# install-claude.sh — Installer for Claude Code notifications in WSL2
 # Run from WSL inside the cloned repo directory.
 set -euo pipefail
 
@@ -11,7 +11,7 @@ WSL_WIN_DIR="/mnt/c/Users/${WIN_USER}/${WIN_DIR_NAME}"
 BIN_DIR="$HOME/.local/bin"
 CLAUDE_SETTINGS="$HOME/.claude/settings.json"
 
-echo "=== wsl-claude-notifier installer ==="
+echo "=== wsl-claude-notifier installer (Claude Code) ==="
 echo ""
 
 # ── Step 1: Check/install BurntToast ──────────────────────────────────────────
@@ -28,8 +28,8 @@ fi
 # ── Step 2: Deploy WSL-side scripts ───────────────────────────────────────────
 echo "[2/5] Deploying scripts to ${BIN_DIR}/..."
 mkdir -p "$BIN_DIR"
-cp "$SCRIPT_DIR/wsl-tmux-notify.sh" "$BIN_DIR/wsl-tmux-notify.sh"
-cp "$SCRIPT_DIR/tmux-jump.sh" "$BIN_DIR/tmux-jump.sh"
+cp "$SCRIPT_DIR/scripts/wsl-tmux-notify.sh" "$BIN_DIR/wsl-tmux-notify.sh"
+cp "$SCRIPT_DIR/scripts/tmux-jump.sh" "$BIN_DIR/tmux-jump.sh"
 chmod +x "$BIN_DIR/wsl-tmux-notify.sh" "$BIN_DIR/tmux-jump.sh"
 echo "  OK: wsl-tmux-notify.sh"
 echo "  OK: tmux-jump.sh"
@@ -37,7 +37,7 @@ echo "  OK: tmux-jump.sh"
 # ── Step 3: Deploy Windows-side files ─────────────────────────────────────────
 echo "[3/5] Deploying Windows-side files to ${WIN_DIR}..."
 mkdir -p "$WSL_WIN_DIR"
-cp "$SCRIPT_DIR/tmux-jump.ps1" "$WSL_WIN_DIR/tmux-jump.ps1"
+cp "$SCRIPT_DIR/windows/tmux-jump.ps1" "$WSL_WIN_DIR/tmux-jump.ps1"
 cp "$SCRIPT_DIR/assets/icon.png" "$WSL_WIN_DIR/icon.png"
 echo "  OK: tmux-jump.ps1"
 echo "  OK: icon.png"
