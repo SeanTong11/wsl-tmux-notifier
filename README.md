@@ -1,4 +1,4 @@
-# wsl-claude-notifier
+# wsl-tmux-notifier
 
 > Windows toast notifications for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) and [Codex CLI](https://github.com/openai/codex) in WSL2 — with tmux session awareness and one-click window jump.
 
@@ -33,7 +33,7 @@ Install for the tools you use — run one or both:
 
 ```bash
 git clone <repo-url>
-cd wsl-claude-notifier
+cd wsl-tmux-notifier
 
 # For Claude Code users
 bash install-claude.sh
@@ -49,6 +49,8 @@ bash install-codex.sh
 2. Deploy notification + jump scripts to `~/.local/bin/`
 3. Deploy protocol handler + icons to `C:\Users\<YOU>\.wsl-claude-notifier\`
 4. Register `tmux-jump://` custom protocol
+
+Note: the Windows asset folder keeps the legacy name `.wsl-claude-notifier` for backward compatibility.
 
 **Claude Code** (step 5): Add hooks to `~/.claude/settings.json`
 

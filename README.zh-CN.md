@@ -1,4 +1,4 @@
-# wsl-claude-notifier
+# wsl-tmux-notifier
 
 > 为 WSL2 + tmux 环境下的 [Claude Code](https://docs.anthropic.com/en/docs/claude-code) 和 [Codex CLI](https://github.com/openai/codex) 提供 Windows 原生 toast 通知。
 
@@ -29,7 +29,7 @@ WSL2 没有原生的 Windows 通知机制。Claude Code / Codex CLI 完成任务
 
 ```bash
 git clone <repo-url>
-cd wsl-claude-notifier
+cd wsl-tmux-notifier
 
 # Claude Code 用户
 bash install-claude.sh
@@ -45,6 +45,8 @@ bash install-codex.sh
 2. 部署通知 + 跳转脚本到 `~/.local/bin/`
 3. 部署协议处理器 + 图标到 `C:\Users\<用户名>\.wsl-claude-notifier\`（`icon.png` + `codex-icon.png`）
 4. 注册 `tmux-jump://` 自定义协议
+
+说明：为兼容历史安装，Windows 侧资源目录仍使用旧名称 `.wsl-claude-notifier`。
 
 **Claude Code**（步骤 5）：在 `~/.claude/settings.json` 中配置 hooks
 
