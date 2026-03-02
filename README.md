@@ -18,7 +18,7 @@ This tool bridges that gap:
 - **Multi-tool support** — works with both Claude Code (hooks) and Codex CLI (notify)
 - **Tmux-aware** — notification title shows `[session:window]` so you instantly know which session finished
 - **One-click jump** — click "Jump" on the toast to activate Windows Terminal and switch directly to the right tmux window _(pane-level jump is WIP)_
-- **Claude icon** — notifications display the Claude logo for easy visual identification
+- **Tool icons** — Claude and Codex notifications support separate icons for clear visual identification
 - **Zero config** — one script installs everything: PowerShell module, shell scripts, custom protocol handler, tool-specific config
 
 ## Tested Environment
@@ -47,7 +47,7 @@ bash install-codex.sh
 **Shared steps** (both installers handle these, skipping if already done):
 1. Install [BurntToast](https://github.com/Windos/BurntToast) PowerShell module
 2. Deploy notification + jump scripts to `~/.local/bin/`
-3. Deploy protocol handler + icon to `C:\Users\<YOU>\.wsl-claude-notifier\`
+3. Deploy protocol handler + icons to `C:\Users\<YOU>\.wsl-claude-notifier\`
 4. Register `tmux-jump://` custom protocol
 
 **Claude Code** (step 5): Add hooks to `~/.claude/settings.json`
@@ -92,6 +92,7 @@ chmod +x ~/.local/bin/tmux-jump.sh
 WIN_USER=$(cmd.exe /C "echo %USERNAME%" 2>/dev/null | tr -d '\r')
 mkdir -p "/mnt/c/Users/${WIN_USER}/.wsl-claude-notifier"
 cp windows/tmux-jump.ps1 assets/icon.png "/mnt/c/Users/${WIN_USER}/.wsl-claude-notifier/"
+cp assets/codex-icon.png "/mnt/c/Users/${WIN_USER}/.wsl-claude-notifier/"
 ```
 
 ### Step 4: Register protocol handler
@@ -137,6 +138,7 @@ Add to `~/.claude/settings.json`:
 Add to `~/.codex/config.toml`:
 
 ```toml
+# Keep this at top level (before any [section] table).
 notify = ["~/.local/bin/wsl-codex-notify.sh"]
 ```
 
@@ -151,7 +153,7 @@ Claude Code hook event (Stop / Notification)
 wsl-tmux-notify.sh ──────────────────────────────┐
                                                   │
 Codex CLI notify (agent-turn-complete)            ├──► BurntToast toast notification
-  │  argv: JSON with type, last-assistant-message │        │
+  │  last argv: JSON with type, last-assistant-message │    │
   ▼                                               │   Click "Jump"
 wsl-codex-notify.sh ─────────────────────────────-┘        │
   ├─ Reads tmux session:window.pane                        ▼
@@ -186,7 +188,13 @@ Removes deployed files, registry entries, and tool-specific config.
   ```bash
   ~/.local/bin/wsl-codex-notify.sh '{"type":"agent-turn-complete","cwd":"/tmp","last-assistant-message":"Test message"}'
   ```
+- Ensure `notify` is top-level in `~/.codex/config.toml` (before any `[section]` table):
+  ```toml
+  notify = ["~/.local/bin/wsl-codex-notify.sh"]
+  ```
+- Validate Codex config parse: `codex --version` (should not print a `config.toml` type error)
 - Verify BurntToast: `powershell.exe -NoProfile -Command "Import-Module BurntToast; New-BurntToastNotification -Text 'Test'"`
+- Check Codex icon file: `ls /mnt/c/Users/*/.wsl-claude-notifier/codex-icon.png`
 - Check Windows notification settings (Settings > System > Notifications)
 - Ensure `jq` is installed: `which jq`
 

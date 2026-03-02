@@ -39,8 +39,14 @@ echo "[3/5] Deploying Windows-side files to ${WIN_DIR}..."
 mkdir -p "$WSL_WIN_DIR"
 cp "$SCRIPT_DIR/windows/tmux-jump.ps1" "$WSL_WIN_DIR/tmux-jump.ps1"
 cp "$SCRIPT_DIR/assets/icon.png" "$WSL_WIN_DIR/icon.png"
+if [ -f "$SCRIPT_DIR/assets/codex-icon.png" ]; then
+  cp "$SCRIPT_DIR/assets/codex-icon.png" "$WSL_WIN_DIR/codex-icon.png"
+else
+  cp "$SCRIPT_DIR/assets/icon.png" "$WSL_WIN_DIR/codex-icon.png"
+fi
 echo "  OK: tmux-jump.ps1"
 echo "  OK: icon.png"
+echo "  OK: codex-icon.png"
 
 # ── Step 4: Register tmux-jump:// protocol ────────────────────────────────────
 echo "[4/5] Registering tmux-jump:// protocol handler..."
@@ -64,19 +70,32 @@ powershell.exe -NoProfile -EncodedCommand "$ENCODED"
 echo "[5/5] Configuring Codex CLI notifications..."
 
 NOTIFY_CMD="$HOME/.local/bin/wsl-codex-notify.sh"
+NOTIFY_LINE="notify = [\"${NOTIFY_CMD}\"]"
 
 if [ -f "$CODEX_CONFIG" ]; then
-  if grep -q "wsl-codex-notify" "$CODEX_CONFIG" 2>/dev/null; then
-    echo "  SKIP: notify already configured"
-  else
-    # Append notify config to existing file
-    printf '\nnotify = ["%s"]\n' "$NOTIFY_CMD" >> "$CODEX_CONFIG"
-    echo "  OK: notify added to $CODEX_CONFIG"
-  fi
+  # Keep notify as top-level key (before any [table]) and avoid stale/invalid duplicates.
+  TMP=$(mktemp)
+  awk -v notify_line="$NOTIFY_LINE" '
+    BEGIN { inserted = 0 }
+    /^[[:space:]]*notify[[:space:]]*=/ { next }
+    !inserted && /^[[:space:]]*\[/ {
+      print notify_line
+      print ""
+      inserted = 1
+    }
+    { print }
+    END {
+      if (!inserted) {
+        if (NR > 0) print ""
+        print notify_line
+      }
+    }
+  ' "$CODEX_CONFIG" > "$TMP" && mv "$TMP" "$CODEX_CONFIG"
+  echo "  OK: normalized notify in $CODEX_CONFIG"
 else
   mkdir -p "$(dirname "$CODEX_CONFIG")"
   cat > "$CODEX_CONFIG" <<TOMLEOF
-notify = ["${NOTIFY_CMD}"]
+${NOTIFY_LINE}
 TOMLEOF
   echo "  OK: created $CODEX_CONFIG with notify"
 fi

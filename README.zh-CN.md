@@ -14,7 +14,7 @@ WSL2 没有原生的 Windows 通知机制。Claude Code / Codex CLI 完成任务
 - **多工具支持** — 同时支持 Claude Code（hooks）和 Codex CLI（notify）
 - **Tmux 感知** — 通知标题显示 `[session:window]`，一眼识别是哪个会话
 - **一键跳转** — 点击通知上的 "Jump" 按钮，自动激活 Windows Terminal 并切换到对应 tmux 窗口 _（pane 级跳转开发中）_
-- **Claude 图标** — 通知带有 Claude logo，视觉辨识度高
+- **工具图标区分** — Claude 和 Codex 通知支持各自图标，视觉辨识更清晰
 - **零配置** — 一个脚本完成所有安装：BurntToast、脚本部署、协议注册、工具配置
 
 ## 测试环境
@@ -43,7 +43,7 @@ bash install-codex.sh
 **共享步骤**（两个安装脚本都会处理，已完成的自动跳过）：
 1. 安装 [BurntToast](https://github.com/Windos/BurntToast) PowerShell 模块
 2. 部署通知 + 跳转脚本到 `~/.local/bin/`
-3. 部署协议处理器 + 图标到 `C:\Users\<用户名>\.wsl-claude-notifier\`
+3. 部署协议处理器 + 图标到 `C:\Users\<用户名>\.wsl-claude-notifier\`（`icon.png` + `codex-icon.png`）
 4. 注册 `tmux-jump://` 自定义协议
 
 **Claude Code**（步骤 5）：在 `~/.claude/settings.json` 中配置 hooks
@@ -80,7 +80,13 @@ bash uninstall-codex.sh
   ```bash
   ~/.local/bin/wsl-codex-notify.sh '{"type":"agent-turn-complete","cwd":"/tmp","last-assistant-message":"测试消息"}'
   ```
+- 确认 `~/.codex/config.toml` 中 `notify` 位于顶层（在任何 `[section]` 表之前）：
+  ```toml
+  notify = ["~/.local/bin/wsl-codex-notify.sh"]
+  ```
+- 校验 Codex 配置是否可解析：`codex --version`（不应出现 `config.toml` 类型错误）
 - 验证 BurntToast：`powershell.exe -NoProfile -Command "Import-Module BurntToast; New-BurntToastNotification -Text 'Test'"`
+- 检查 Codex 图标文件：`ls /mnt/c/Users/*/.wsl-claude-notifier/codex-icon.png`
 - 检查 Windows 通知设置（设置 > 系统 > 通知）
 - 确认 `jq` 已安装：`which jq`
 
