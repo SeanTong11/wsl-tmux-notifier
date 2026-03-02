@@ -30,14 +30,23 @@ CWD="${CWD/#$HOME/\~}"
 
 # Windows-side directory for icon and other assets
 WIN_USER=$(cmd.exe /C "echo %USERNAME%" 2>/dev/null | tr -d '\r')
-WIN_DIR_NAME=".wsl-claude-notifier"
+WIN_DIR_NAME=".wsl-tmux-notifier"
+LEGACY_WIN_DIR_NAME=".wsl-claude-notifier"
 WIN_ICON_CODEX="C:\\Users\\${WIN_USER}\\${WIN_DIR_NAME}\\codex-icon.png"
 WIN_ICON_FALLBACK="C:\\Users\\${WIN_USER}\\${WIN_DIR_NAME}\\icon.png"
 WSL_ICON_CODEX="/mnt/c/Users/${WIN_USER}/${WIN_DIR_NAME}/codex-icon.png"
+LEGACY_WIN_ICON_CODEX="C:\\Users\\${WIN_USER}\\${LEGACY_WIN_DIR_NAME}\\codex-icon.png"
+LEGACY_WIN_ICON_FALLBACK="C:\\Users\\${WIN_USER}\\${LEGACY_WIN_DIR_NAME}\\icon.png"
+WSL_ICON_FALLBACK="/mnt/c/Users/${WIN_USER}/${WIN_DIR_NAME}/icon.png"
+WSL_LEGACY_ICON_CODEX="/mnt/c/Users/${WIN_USER}/${LEGACY_WIN_DIR_NAME}/codex-icon.png"
 if [ -f "$WSL_ICON_CODEX" ]; then
   WIN_ICON="$WIN_ICON_CODEX"
-else
+elif [ -f "$WSL_ICON_FALLBACK" ]; then
   WIN_ICON="$WIN_ICON_FALLBACK"
+elif [ -f "$WSL_LEGACY_ICON_CODEX" ]; then
+  WIN_ICON="$LEGACY_WIN_ICON_CODEX"
+else
+  WIN_ICON="$LEGACY_WIN_ICON_FALLBACK"
 fi
 
 # Get tmux session:window for identification, fallback to dir basename

@@ -3,11 +3,10 @@
 set -euo pipefail
 
 WIN_USER=$(cmd.exe /C "echo %USERNAME%" 2>/dev/null | tr -d '\r')
-WSL_WIN_DIR="/mnt/c/Users/${WIN_USER}/.wsl-claude-notifier"
 BIN_DIR="$HOME/.local/bin"
 CLAUDE_SETTINGS="$HOME/.claude/settings.json"
 
-echo "=== wsl-claude-notifier uninstaller (Claude Code) ==="
+echo "=== wsl-tmux-notifier uninstaller (Claude Code) ==="
 echo ""
 
 # Step 1: Remove registry protocol
@@ -16,9 +15,13 @@ UNREG_SCRIPT='Remove-Item -Path "HKCU:\Software\Classes\tmux-jump" -Recurse -For
 ENCODED=$(printf '%s' "$UNREG_SCRIPT" | iconv -f UTF-8 -t UTF-16LE | base64 -w 0)
 powershell.exe -NoProfile -EncodedCommand "$ENCODED"
 
-# Step 2: Remove Windows-side files (current + legacy directory name)
+# Step 2: Remove Windows-side files (current + legacy directory names)
 echo "[2/4] Removing Windows-side files..."
-for dir in "$WSL_WIN_DIR" "/mnt/c/Users/${WIN_USER}/.wsl-tmux-notify"; do
+for dir in \
+  "/mnt/c/Users/${WIN_USER}/.wsl-tmux-notifier" \
+  "/mnt/c/Users/${WIN_USER}/.wsl-claude-notifier" \
+  "/mnt/c/Users/${WIN_USER}/.wsl-tmux-notify"
+do
   if [ -d "$dir" ]; then
     rm -r "$dir"
     echo "  OK: removed $dir"

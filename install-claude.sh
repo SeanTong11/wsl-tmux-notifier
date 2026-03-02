@@ -5,13 +5,13 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 WIN_USER=$(cmd.exe /C "echo %USERNAME%" 2>/dev/null | tr -d '\r')
-WIN_DIR_NAME=".wsl-claude-notifier"
+WIN_DIR_NAME=".wsl-tmux-notifier"
 WIN_DIR="C:\\Users\\${WIN_USER}\\${WIN_DIR_NAME}"
 WSL_WIN_DIR="/mnt/c/Users/${WIN_USER}/${WIN_DIR_NAME}"
 BIN_DIR="$HOME/.local/bin"
 CLAUDE_SETTINGS="$HOME/.claude/settings.json"
 
-echo "=== wsl-claude-notifier installer (Claude Code) ==="
+echo "=== wsl-tmux-notifier installer (Claude Code) ==="
 echo ""
 
 # ── Step 1: Check/install BurntToast ──────────────────────────────────────────
@@ -47,7 +47,7 @@ echo "[4/5] Registering tmux-jump:// protocol handler..."
 
 REG_SCRIPT=$(cat <<'PSEOF'
 $proto = "tmux-jump"
-$handler = 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Users\WINUSER\.wsl-claude-notifier\tmux-jump.ps1" "%1"'
+$handler = 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Users\WINUSER\.wsl-tmux-notifier\tmux-jump.ps1" "%1"'
 New-Item -Path "HKCU:\Software\Classes\$proto" -Force | Out-Null
 Set-ItemProperty -Path "HKCU:\Software\Classes\$proto" -Name "(Default)" -Value "URL:tmux-jump Protocol"
 New-ItemProperty -Path "HKCU:\Software\Classes\$proto" -Name "URL Protocol" -Value "" -Force | Out-Null

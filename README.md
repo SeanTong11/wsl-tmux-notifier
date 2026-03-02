@@ -47,10 +47,10 @@ bash install-codex.sh
 **Shared steps** (both installers handle these, skipping if already done):
 1. Install [BurntToast](https://github.com/Windos/BurntToast) PowerShell module
 2. Deploy notification + jump scripts to `~/.local/bin/`
-3. Deploy protocol handler + icons to `C:\Users\<YOU>\.wsl-claude-notifier\`
+3. Deploy protocol handler + icons to `C:\Users\<YOU>\.wsl-tmux-notifier\`
 4. Register `tmux-jump://` custom protocol
 
-Note: the Windows asset folder keeps the legacy name `.wsl-claude-notifier` for backward compatibility.
+Upgrade note: older versions used `.wsl-claude-notifier`; after reinstalling, you can remove that legacy folder.
 
 **Claude Code** (step 5): Add hooks to `~/.claude/settings.json`
 
@@ -92,9 +92,9 @@ chmod +x ~/.local/bin/tmux-jump.sh
 
 ```bash
 WIN_USER=$(cmd.exe /C "echo %USERNAME%" 2>/dev/null | tr -d '\r')
-mkdir -p "/mnt/c/Users/${WIN_USER}/.wsl-claude-notifier"
-cp windows/tmux-jump.ps1 assets/icon.png "/mnt/c/Users/${WIN_USER}/.wsl-claude-notifier/"
-cp assets/codex-icon.png "/mnt/c/Users/${WIN_USER}/.wsl-claude-notifier/"
+mkdir -p "/mnt/c/Users/${WIN_USER}/.wsl-tmux-notifier"
+cp windows/tmux-jump.ps1 assets/icon.png "/mnt/c/Users/${WIN_USER}/.wsl-tmux-notifier/"
+cp assets/codex-icon.png "/mnt/c/Users/${WIN_USER}/.wsl-tmux-notifier/"
 ```
 
 ### Step 4: Register protocol handler
@@ -103,7 +103,7 @@ cp assets/codex-icon.png "/mnt/c/Users/${WIN_USER}/.wsl-claude-notifier/"
 # Replace <USER> with your Windows username
 powershell.exe -NoProfile -Command @'
 $proto = "tmux-jump"
-$handler = 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Users\<USER>\.wsl-claude-notifier\tmux-jump.ps1" "%1"'
+$handler = 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Users\<USER>\.wsl-tmux-notifier\tmux-jump.ps1" "%1"'
 New-Item -Path "HKCU:\Software\Classes\$proto" -Force | Out-Null
 Set-ItemProperty -Path "HKCU:\Software\Classes\$proto" -Name "(Default)" -Value "URL:tmux-jump Protocol"
 New-ItemProperty -Path "HKCU:\Software\Classes\$proto" -Name "URL Protocol" -Value "" -Force | Out-Null
@@ -196,7 +196,7 @@ Removes deployed files, registry entries, and tool-specific config.
   ```
 - Validate Codex config parse: `codex --version` (should not print a `config.toml` type error)
 - Verify BurntToast: `powershell.exe -NoProfile -Command "Import-Module BurntToast; New-BurntToastNotification -Text 'Test'"`
-- Check Codex icon file: `ls /mnt/c/Users/*/.wsl-claude-notifier/codex-icon.png`
+- Check Codex icon file: `ls /mnt/c/Users/*/.wsl-tmux-notifier/codex-icon.png`
 - Check Windows notification settings (Settings > System > Notifications)
 - Ensure `jq` is installed: `which jq`
 
@@ -204,8 +204,8 @@ Removes deployed files, registry entries, and tool-specific config.
 - Check current tmux target: `tmux display-message -p '#{session_name}:#{window_index}.#{pane_index}'`
 - Test jump directly: `bash ~/.local/bin/tmux-jump.sh <session>:<window>.<pane>`
 - Test protocol handler: `powershell.exe -Command "Start-Process 'tmux-jump://<session>:<window>.<pane>'"`
-- Check handler exists: `ls /mnt/c/Users/*/.wsl-claude-notifier/tmux-jump.ps1`
-- Check protocol log: `cat /mnt/c/Users/*/.wsl-claude-notifier/tmux-jump.log`
+- Check handler exists: `ls /mnt/c/Users/*/.wsl-tmux-notifier/tmux-jump.ps1`
+- Check protocol log: `cat /mnt/c/Users/*/.wsl-tmux-notifier/tmux-jump.log`
 
 **No Jump button on toast?**
 - Jump button only appears when running inside tmux (`echo $TMUX` should have output)

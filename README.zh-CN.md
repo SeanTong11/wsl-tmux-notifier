@@ -43,10 +43,10 @@ bash install-codex.sh
 **共享步骤**（两个安装脚本都会处理，已完成的自动跳过）：
 1. 安装 [BurntToast](https://github.com/Windos/BurntToast) PowerShell 模块
 2. 部署通知 + 跳转脚本到 `~/.local/bin/`
-3. 部署协议处理器 + 图标到 `C:\Users\<用户名>\.wsl-claude-notifier\`（`icon.png` + `codex-icon.png`）
+3. 部署协议处理器 + 图标到 `C:\Users\<用户名>\.wsl-tmux-notifier\`（`icon.png` + `codex-icon.png`）
 4. 注册 `tmux-jump://` 自定义协议
 
-说明：为兼容历史安装，Windows 侧资源目录仍使用旧名称 `.wsl-claude-notifier`。
+升级说明：旧版本使用 `.wsl-claude-notifier`；重装后可手动删除该旧目录。
 
 **Claude Code**（步骤 5）：在 `~/.claude/settings.json` 中配置 hooks
 
@@ -88,7 +88,7 @@ bash uninstall-codex.sh
   ```
 - 校验 Codex 配置是否可解析：`codex --version`（不应出现 `config.toml` 类型错误）
 - 验证 BurntToast：`powershell.exe -NoProfile -Command "Import-Module BurntToast; New-BurntToastNotification -Text 'Test'"`
-- 检查 Codex 图标文件：`ls /mnt/c/Users/*/.wsl-claude-notifier/codex-icon.png`
+- 检查 Codex 图标文件：`ls /mnt/c/Users/*/.wsl-tmux-notifier/codex-icon.png`
 - 检查 Windows 通知设置（设置 > 系统 > 通知）
 - 确认 `jq` 已安装：`which jq`
 
@@ -96,8 +96,8 @@ bash uninstall-codex.sh
 - 查看当前 tmux 位置：`tmux display-message -p '#{session_name}:#{window_index}.#{pane_index}'`
 - 直接测试跳转：`bash ~/.local/bin/tmux-jump.sh <session>:<window>.<pane>`
 - 测试协议处理器：`powershell.exe -Command "Start-Process 'tmux-jump://<session>:<window>.<pane>'"`
-- 检查处理器是否存在：`ls /mnt/c/Users/*/.wsl-claude-notifier/tmux-jump.ps1`
-- 查看协议日志：`cat /mnt/c/Users/*/.wsl-claude-notifier/tmux-jump.log`
+- 检查处理器是否存在：`ls /mnt/c/Users/*/.wsl-tmux-notifier/tmux-jump.ps1`
+- 查看协议日志：`cat /mnt/c/Users/*/.wsl-tmux-notifier/tmux-jump.log`
 
 **通知没有 Jump 按钮？**
 - Jump 按钮仅在 tmux 环境内出现（`echo $TMUX` 应有输出）

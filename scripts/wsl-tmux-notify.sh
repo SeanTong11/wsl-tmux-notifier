@@ -10,7 +10,14 @@ CWD="${CWD/#$HOME/\~}"
 
 # Windows-side directory for icon and other assets
 WIN_USER=$(cmd.exe /C "echo %USERNAME%" 2>/dev/null | tr -d '\r')
-WIN_ICON="C:\\Users\\${WIN_USER}\\.wsl-claude-notifier\\icon.png"
+WIN_DIR_NAME=".wsl-tmux-notifier"
+LEGACY_WIN_DIR_NAME=".wsl-claude-notifier"
+WSL_ICON="/mnt/c/Users/${WIN_USER}/${WIN_DIR_NAME}/icon.png"
+if [ -f "$WSL_ICON" ]; then
+  WIN_ICON="C:\\Users\\${WIN_USER}\\${WIN_DIR_NAME}\\icon.png"
+else
+  WIN_ICON="C:\\Users\\${WIN_USER}\\${LEGACY_WIN_DIR_NAME}\\icon.png"
+fi
 
 # Get tmux session:window for identification, fallback to dir basename
 if [ -n "$TMUX" ]; then
